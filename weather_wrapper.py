@@ -16,6 +16,6 @@ def get_weather(latitude, longitude):
         return "Failed to fetch weather data"
 
 if __name__ == "__main__":
-    latitude = float(os.environ.get('LAT'))
-    longitude = float(os.environ.get('LONG'))
+    latitude = os.environ.get('LAT')
+    longitude = os.environ.get('LONG')
     print(get_weather(latitude, longitude))
