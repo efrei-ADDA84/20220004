@@ -25,8 +25,8 @@ Créez un script Python (weather_wrapper.py) qui utilise l'API OpenWeatherMap po
 Assurez-vous d'utiliser des variables d'environnement pour stocker la clé API OpenWeatherMap, la latitude et la longitude.
 
 ## 2. Création du Dockerfile
-```
 
+```
 FROM python:3.9-alpine
 WORKDIR /app
 COPY weather_wrapper.py .
@@ -34,12 +34,13 @@ RUN pip install requests
 CMD ["python", "weather_wrapper.py"]
 ```
 ## 3. Construction de l'Image Docker
+
 Utilisez la commande 
 ```
-docker build 
+docker build -t weatherapp .
 ```
 pour construire l'image Docker à partir du Dockerfile.
-Assurez-vous de tagger l'image avec une version spécifique.
+Assurez-vous de tagger l'image avec une version spécifique si vous voulez.
 
 ## 4. Mise à Disposition sur DockerHub
 
@@ -48,6 +49,12 @@ Connectez-vous à votre compte DockerHub en utilisant :
 ```
 docker login
 ```
+Pour push l'image sur dockerhub :
+```
+docker tag weatherapp mhrr/20220004
+```
+Puis appuyé sur les trois petits points à côté de l'image créée et appuyé sur "Push to Hub".
+
 Utilisez la commande : 
 
 ```
