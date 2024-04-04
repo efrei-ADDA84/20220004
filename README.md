@@ -55,6 +55,8 @@ docker tag weatherapp mhrr/20220004
 ```
 Puis appuyé sur les trois petits points à côté de l'image créée et appuyé sur "Push to Hub".
 
+OU 
+
 Utilisez la commande : 
 
 ```
@@ -74,3 +76,16 @@ pour scanner l'image Docker que vous avez créée avec Trivy.
 
 Mesure prise en modifiant sur le dockerfile le FROM python:3.9-slim par FROM python:3.9-alpine
 
+## 6.  lint errors on Dockerfile (hadolint)
+
+Pour vérifier s'il y a des erreurs de style dans votre Dockerfile, exécutez la commande suivante :
+
+```
+docker run --rm -i hadolint/hadolint < Dockerfile
+```
+
+Pour corriger les erreurs détectées,  j'ai ajouté la spécification de la version et l'option --no-cache-dir lors de l'installation du package requests dans votre Dockerfile. Cela a permis de supprimer les erreurs signalées par Hadolint.
+
+## 7. Aucune données sensible
+
+Pour garantir qu'aucune donnée sensible, comme la clé API OpenWeather, n'est stockée dans l'image Docker.
