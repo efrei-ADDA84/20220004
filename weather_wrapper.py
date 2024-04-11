@@ -1,13 +1,16 @@
 from flask import Flask, request, jsonify
 import os
-import requests
 
 app = Flask(__name__)
+
+@app.route('/', methods=['GET'])
+def home():
+    return 'Welcome to the weather API!'
 
 @app.route('/weather', methods=['GET'])
 def get_weather():
     latitude = request.args.get('lat')
-    longitude = request.args.get('long')
+    longitude = request.args.get('lon')
     api_key = os.environ.get('API_KEY')
     
     if latitude is None or longitude is None:
@@ -26,4 +29,4 @@ def get_weather():
         return jsonify({'error': 'Failed to fetch weather data'}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=8081)
