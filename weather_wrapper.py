@@ -1,16 +1,13 @@
 from flask import Flask, request, jsonify
 import os
+import requests
 
 app = Flask(__name__)
-
-@app.route('/', methods=['GET'])
-def home():
-    return 'Welcome to the weather API!'
 
 @app.route('/weather', methods=['GET'])
 def get_weather():
     latitude = request.args.get('lat')
-    longitude = request.args.get('lon')
+    longitude = request.args.get('long')
     api_key = os.environ.get('API_KEY')
     
     if latitude is None or longitude is None:
