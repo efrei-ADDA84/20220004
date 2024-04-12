@@ -18,7 +18,8 @@ jobs:
       run: docker build -t mhrr/20220004:latest .
 
     - name: Hadolint
-      uses: hadolint/hadolint-action@v2
+    - uses: actions/checkout@v3
+    - uses: hadolint/hadolint-action@v3.1.0
       with:
         fail-on: warning,error
       
