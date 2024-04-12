@@ -58,7 +58,7 @@ jobs:
         resource-group: ${{ secrets.RESOURCE_GROUP }}
         dns-name-label: devops-${{ secrets.RESOURCE_GROUP }}
         image: ${{ secrets.REGISTRY_LOGIN_SERVER }}/20220004:latest
-        name: 2022004
+        name: 20220004
         location: 'francecentral'
         registry-login-server: ${{ secrets.REGISTRY_LOGIN_SERVER }}
         registry-username: ${{ secrets.REGISTRY_USERNAME }}
