@@ -17,8 +17,10 @@ jobs:
     - name: Build the Docker image
       run: docker build -t mhrr/20220004:latest .
 
-    - name: Check Dockerfile with Hadolint
-      run: docker run --rm -i hadolint/hadolint < Dockerfile
+    - name: Hadolint
+      uses: hadolint/hadolint-action@v2
+      with:
+        fail-on: warning,error
       
     - name: Log in to Docker Hub
       run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
