@@ -64,4 +64,3 @@ jobs:
         registry-username: ${{ secrets.REGISTRY_USERNAME }}
         registry-password: ${{ secrets.REGISTRY_PASSWORD }}
         secure-environment-variables: OPENWEATHER_API_KEY=${{ secrets.API_OPENWEATHER }}
-        ports: 81
