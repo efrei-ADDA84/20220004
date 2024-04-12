@@ -195,6 +195,14 @@ Cette modification de la commande a permis de résoudre le problème de connecti
 
 Incorporation de Hadolint dans mon flux de travail GitHub m'a permis d'automatiser la vérification de mon Dockerfile à chaque fois que je faisais un commit. Ainsi, chaque modification apportée au Dockerfile était immédiatement évaluée, et je recevais des commentaires sur les éventuelles erreurs ou violations des bonnes pratiques.
 
+```
+- name: Hadolint
+      uses: hadolint/hadolint-action@v3.1.0
+      with:
+        dockerfile: Dockerfile
+        fail-on: warning,error
+```
+
 ## Sécurité 
 
 Lorsque j'ai développé mon application et configuré mon environnement Docker, j'ai veillé à ne pas stocker de données sensibles dans le code source ou dans l'image Docker. Cela inclut des éléments tels que les clés API OpenWeatherMap, les informations d'identification Docker Hub ou toute autre information confidentielle.
