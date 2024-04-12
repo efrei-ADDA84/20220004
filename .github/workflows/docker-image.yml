@@ -43,7 +43,7 @@ jobs:
         context: .
         file: ./Dockerfile
         push: true
-        tags: ${{ secrets.REGISTRY_LOGIN_SERVER }}/20220004:latest
+        tags: mhrr/20220004:latest
       env:
         OPENWEATHER_API: ${{ secrets.API_OPENWEATHER }}
 
