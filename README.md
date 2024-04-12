@@ -105,7 +105,7 @@ Docker pull mhrr/latest
 
 Run le serveur 
 ```
-docker run -p 8081:8081 --env API_KEY=YOUR_API weatherapicall:20221199
+docker run -p 8081:8081 --env API_KEY=YOUR_API mhrr/20220004
 ```
 
 Test
@@ -194,6 +194,14 @@ Cette modification de la commande a permis de résoudre le problème de connecti
 ## Hadolint 
 
 Incorporation de Hadolint dans mon flux de travail GitHub m'a permis d'automatiser la vérification de mon Dockerfile à chaque fois que je faisais un commit. Ainsi, chaque modification apportée au Dockerfile était immédiatement évaluée, et je recevais des commentaires sur les éventuelles erreurs ou violations des bonnes pratiques.
+
+```
+- name: Hadolint
+      uses: hadolint/hadolint-action@v3.1.0
+      with:
+        dockerfile: Dockerfile
+        fail-on: warning,error
+```
 
 ## Sécurité 
 
