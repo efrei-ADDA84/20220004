@@ -211,4 +211,94 @@ Gestion des variables d'environnement : Plutôt que d'inclure directement des cl
 
 Pour gérer mes identifications Docker Hub de manière sécurisée, j'ai utilisé des paramètres spécifiques à mon dépôt git, tel que l'outil de gestion de secrets comme Git Secret. 
 
-# tp3
+# TP3 - Utilisation d'une API météo avec Azure et Prometheus
+Ce TP vise à déployer une API météo à l'aide de Docker, Azure Container Registry (ACR) et Azure Container Instance (ACI). De plus, nous ajouterons l'exposition de métriques Prometheus pour surveiller notre application.
+
+## Utilisation de l'API météo
+
+Vous pouvez interagir avec l'API météo en utilisant Curl avec la commande suivante :
+```
+curl "http://devops-20220004.francecentral.azurecontainer.io:8081/?lat=5.902785&lon=102.754175"
+```
+Cette commande enverra une requête à notre API déployée sur Azure, fournissant les coordonnées de latitude et de longitude pour obtenir les informations météorologiques correspondantes.
+
+## Déploiement sur Azure
+Pour déployer l'application sur Azure, nous utilisons GitHub Actions pour automatiser le processus de construction et de déploiement. Voici les étapes effectuées dans le fichier YAML de notre workflow :
+
+Connexion à Azure Container Registry (ACR) : Nous nous connectons à Azure Container Registry en utilisant les informations d'identification stockées dans les secrets GitHub.
+
+```
+- name: Log in to Azure Container Registry
+      uses: docker/login-action@v1
+      with: 
+        registry: ${{ secrets.REGISTRY_LOGIN_SERVER }}
+        username: ${{ secrets.REGISTRY_USERNAME }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}
+```
+
+Construction et poussée de l'image Docker vers ACR : L'image Docker est construite à nouveau et poussée vers Azure Container Registry (ACR) pour une gestion plus sécurisée des conteneurs.
+
+```
+- name: Build and push Docker image to ACR
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        file: ./Dockerfile
+        push: true
+        tags: ${{ secrets.REGISTRY_LOGIN_SERVER }}/20220004:latest
+```
+
+Connexion à Azure : Nous nous connectons à Azure en utilisant les informations d'identification stockées dans les secrets GitHub.
+
+```
+- name: 'Login via Azure CLI'
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+```
+
+Déploiement sur Azure Container Instance (ACI) : L'application est déployée sur Azure Container Instance en utilisant l'image Docker stockée dans Azure Container Registry. Nous spécifions le groupe de ressources, le nom de l'instance, le label DNS, l'emplacement géographique, les informations d'identification du registre Docker, ainsi que les variables d'environnement sécurisées pour notre clé API. De plus, nous avons spécifié le port 8081 pour l'écoute de l'application.
+
+```
+- name: 'Deploy to Azure Container Instance'
+      uses: azure/aci-deploy@v1
+      with:
+        resource-group: ${{ secrets.RESOURCE_GROUP }}
+        dns-name-label: devops-20220004
+        image: ${{ secrets.REGISTRY_LOGIN_SERVER }}/20220004:latest
+        name: 20220004
+        location: francecentral
+        registry-login-server: ${{ secrets.REGISTRY_LOGIN_SERVER }}
+        registry-username: ${{ secrets.REGISTRY_USERNAME }}
+        registry-password: ${{ secrets.REGISTRY_PASSWORD }}
+        secure-environment-variables: API_KEY=${{ secrets.API_KEY }}
+        ports: 8081
+```
+
+les secrets nécessaires sont correctement configurés dans les paramètres de votre référentiel GitHub, notamment :
+
+DOCKERHUB_USERNAME et DOCKERHUB_PASSWORD : Informations d'identification Docker Hub.
+REGISTRY_LOGIN_SERVER, REGISTRY_USERNAME et REGISTRY_PASSWORD : Informations d'identification Azure Container Registry.
+AZURE_CREDENTIALS : Informations d'identification Azure pour se connecter à Azure.
+API_KEY : Clé d'API nécessaire pour l'application.
+
+L'utilisation de GitHub Actions combinée à Azure permet une automatisation efficace du processus de construction et de déploiement de l'application, offrant ainsi une expérience de développement et de déploiement fluide et sécurisée.
+
+## Utilisation de métriques Prometheus dans notre application
+Cette partie de notre application consiste à intégrer des métriques Prometheus pour surveiller les performances en temps réel. Voici comment cela fonctionne :
+
+### Intégration des métriques Prometheus
+Nous avons intégré la bibliothèque Prometheus Client à notre application Flask. Cette bibliothèque nous permet de créer des compteurs pour suivre le nombre de requêtes reçues.
+
+### Point de terminaison /metrics
+Nous avons ajouté un point de terminaison /metrics à notre application. Lorsque vous accédez à ce point de terminaison, notre application renvoie les métriques Prometheus au format texte.
+
+### Métriques disponibles
+Les métriques disponibles comprennent notamment le nombre total de requêtes reçues par notre application. Ces métriques nous permettent de surveiller les performances de notre application et d'identifier les éventuels goulets d'étranglement.
+
+### Comment utiliser
+Pour accéder aux métriques Prometheus, il vous suffit de faire une requête GET vers le point de terminaison /metrics de notre application.
+```
+curl "http://devops-20220004.francecentral.azurecontainer.io:8081/?lat=5.902785&lon=102.754175"
+```
+Cela renverra les métriques Prometheus au format texte, que vous pouvez ensuite utiliser pour surveiller les performances de notre application.
