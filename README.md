@@ -210,3 +210,5 @@ Lorsque j'ai développé mon application et configuré mon environnement Docker,
 Gestion des variables d'environnement : Plutôt que d'inclure directement des clés API ou des informations d'identification dans le code source, j'ai utilisé des variables d'environnement pour les stocker. Cela permet de les injecter dynamiquement dans le conteneur Docker au moment de son exécution, sans qu'elles ne soient exposées dans le code source.
 
 Pour gérer mes identifications Docker Hub de manière sécurisée, j'ai utilisé des paramètres spécifiques à mon dépôt git, tel que l'outil de gestion de secrets comme Git Secret. 
+
+# tp3
