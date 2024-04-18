@@ -63,4 +63,4 @@ jobs:
         registry-login-server: ${{ secrets.REGISTRY_LOGIN_SERVER }}
         registry-username: ${{ secrets.REGISTRY_USERNAME }}
         registry-password: ${{ secrets.REGISTRY_PASSWORD }}
-        secure-environment-variables: OPENWEATHER_API_KEY=${{ secrets.API_OPENWEATHER }}
+        secure-environment-variables: OPENWEATHER_API=${{ secrets.API_OPENWEATHER }}
