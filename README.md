@@ -105,7 +105,7 @@ Docker pull mhrr/latest
 
 Run le serveur 
 ```
-docker run -p 8081:8081 --env API_KEY=YOUR_API weatherapicall:20221199
+docker run -p 8081:8081 --env API_KEY=YOUR_API mhrr/20220004
 ```
 
 Test
