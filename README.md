@@ -106,6 +106,7 @@ Docker pull mhrr/latest
 Run le serveur 
 ```
 docker run -p 8081:8081 --env API_KEY=YOUR_API mhrr/20220004
+docker run -p 8081:8081 --env API_KEY=YOUR_API mhrr/20220004
 ```
 
 Test
@@ -203,6 +204,14 @@ Incorporation de Hadolint dans mon flux de travail GitHub m'a permis d'automatis
         fail-on: warning,error
 ```
 
+```
+- name: Hadolint
+      uses: hadolint/hadolint-action@v3.1.0
+      with:
+        dockerfile: Dockerfile
+        fail-on: warning,error
+```
+
 ## Sécurité 
 
 Lorsque j'ai développé mon application et configuré mon environnement Docker, j'ai veillé à ne pas stocker de données sensibles dans le code source ou dans l'image Docker. Cela inclut des éléments tels que les clés API OpenWeatherMap, les informations d'identification Docker Hub ou toute autre information confidentielle.
@@ -211,4 +220,250 @@ Gestion des variables d'environnement : Plutôt que d'inclure directement des cl
 
 Pour gérer mes identifications Docker Hub de manière sécurisée, j'ai utilisé des paramètres spécifiques à mon dépôt git, tel que l'outil de gestion de secrets comme Git Secret. 
 
-# tp3
+# TP3 - Utilisation d'une API météo avec Azure et Prometheus
+Ce TP vise à déployer une API météo à l'aide de Docker, Azure Container Registry (ACR) et Azure Container Instance (ACI). De plus, nous ajouterons l'exposition de métriques Prometheus pour surveiller notre application.
+
+## Utilisation de l'API météo
+
+Vous pouvez interagir avec l'API météo en utilisant Curl avec la commande suivante :
+```
+curl "http://devops-20220004.francecentral.azurecontainer.io:8081/?lat=5.902785&lon=102.754175"
+```
+Cette commande enverra une requête à notre API déployée sur Azure, fournissant les coordonnées de latitude et de longitude pour obtenir les informations météorologiques correspondantes.
+
+## Déploiement sur Azure
+Pour déployer l'application sur Azure, nous utilisons GitHub Actions pour automatiser le processus de construction et de déploiement. Voici les étapes effectuées dans le fichier YAML de notre workflow :
+
+Connexion à Azure Container Registry (ACR) : Nous nous connectons à Azure Container Registry en utilisant les informations d'identification stockées dans les secrets GitHub.
+
+```
+- name: Log in to Azure Container Registry
+      uses: docker/login-action@v1
+      with: 
+        registry: ${{ secrets.REGISTRY_LOGIN_SERVER }}
+        username: ${{ secrets.REGISTRY_USERNAME }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}
+```
+
+Construction et poussée de l'image Docker vers ACR : L'image Docker est construite à nouveau et poussée vers Azure Container Registry (ACR) pour une gestion plus sécurisée des conteneurs.
+
+```
+- name: Build and push Docker image to ACR
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        file: ./Dockerfile
+        push: true
+        tags: ${{ secrets.REGISTRY_LOGIN_SERVER }}/20220004:latest
+```
+
+Connexion à Azure : Nous nous connectons à Azure en utilisant les informations d'identification stockées dans les secrets GitHub.
+
+```
+- name: 'Login via Azure CLI'
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+```
+
+Déploiement sur Azure Container Instance (ACI) : L'application est déployée sur Azure Container Instance en utilisant l'image Docker stockée dans Azure Container Registry. Nous spécifions le groupe de ressources, le nom de l'instance, le label DNS, l'emplacement géographique, les informations d'identification du registre Docker, ainsi que les variables d'environnement sécurisées pour notre clé API. De plus, nous avons spécifié le port 8081 pour l'écoute de l'application.
+
+```
+- name: 'Deploy to Azure Container Instance'
+      uses: azure/aci-deploy@v1
+      with:
+        resource-group: ${{ secrets.RESOURCE_GROUP }}
+        dns-name-label: devops-20220004
+        image: ${{ secrets.REGISTRY_LOGIN_SERVER }}/20220004:latest
+        name: 20220004
+        location: francecentral
+        registry-login-server: ${{ secrets.REGISTRY_LOGIN_SERVER }}
+        registry-username: ${{ secrets.REGISTRY_USERNAME }}
+        registry-password: ${{ secrets.REGISTRY_PASSWORD }}
+        secure-environment-variables: API_KEY=${{ secrets.API_KEY }}
+        ports: 8081
+```
+
+les secrets nécessaires sont correctement configurés dans les paramètres de votre référentiel GitHub, notamment :
+
+DOCKERHUB_USERNAME et DOCKERHUB_PASSWORD : Informations d'identification Docker Hub.
+REGISTRY_LOGIN_SERVER, REGISTRY_USERNAME et REGISTRY_PASSWORD : Informations d'identification Azure Container Registry.
+AZURE_CREDENTIALS : Informations d'identification Azure pour se connecter à Azure.
+API_KEY : Clé d'API nécessaire pour l'application.
+
+L'utilisation de GitHub Actions combinée à Azure permet une automatisation efficace du processus de construction et de déploiement de l'application, offrant ainsi une expérience de développement et de déploiement fluide et sécurisée.
+
+## Utilisation de métriques Prometheus dans notre application
+Cette partie de notre application consiste à intégrer des métriques Prometheus pour surveiller les performances en temps réel. Voici comment cela fonctionne :
+
+### Intégration des métriques Prometheus
+Nous avons intégré la bibliothèque Prometheus Client à notre application Flask. Cette bibliothèque nous permet de créer des compteurs pour suivre le nombre de requêtes reçues.
+
+### Point de terminaison /metrics
+Nous avons ajouté un point de terminaison /metrics à notre application. Lorsque vous accédez à ce point de terminaison, notre application renvoie les métriques Prometheus au format texte.
+
+### Métriques disponibles
+Les métriques disponibles comprennent notamment le nombre total de requêtes reçues par notre application. Ces métriques nous permettent de surveiller les performances de notre application et d'identifier les éventuels goulets d'étranglement.
+
+### Comment utiliser
+Pour accéder aux métriques Prometheus, il vous suffit de faire une requête GET vers le point de terminaison /metrics de notre application.
+```
+curl "http://devops-20220004.francecentral.azurecontainer.io:8081/?lat=5.902785&lon=102.754175"
+```
+Cela renverra les métriques Prometheus au format texte, que vous pouvez ensuite utiliser pour surveiller les performances de notre application.
+
+
+
+# TP4 : Création d'une machine virtuelle Azure avec Terraform
+
+Création d'une machine virtuelle Azure (VM) avec une adresse IP publique dans un réseau existant à l'aide de Terraform.
+
+## Utilisation 
+
+### Initialisation de Terraform :
+iInitialiser Terraform dans le répertoire du projet
+```
+terraform init
+```
+
+### Prévisualisation du déploiement :
+Effectuer une prévisualisation des changements que Terraform va appliquer à votre infrastructure :
+```
+terraform plan
+```
+
+### Déploiement de l'infrastructure :
+Déployer l'infrastructure sur Azure
+```
+terraform apply
+```
+
+### Récupération de la PrivateKey 
+Cette commande est utilisée pour afficher la sortie de la clé privée SSH générée dans le fichier Terraform. Cette clé privée est générée à l'aide du module tls_private_key dans le fichier ssh.tf
+```
+terraform output private_key_pem
+```
+
+### Connexion à la machine virtuelle :
+Récupérer l'adresse IP publique de la machine virtuelle à partir de la sortie de Terraform. Utiliser la commande SSH pour vous connecter à la machine virtuelle :
+```
+ssh -i PrivateKey.pem  devops@52.143.143.48 cat /etc/os-release
+```
+
+"PrivateKey.pem" : Création de ce fichier via le contenu généré précédemment.
+"52.143.143.48" : Adresse IP publique récupérée après avoir créé la machine virtuelle."
+
+### Nettoyage des ressources :
+Supprimer toutes les ressources déployées en exécutant la commande
+```
+terraform destroy
+```
+
+## Structure du code
+
+Le code Terraform est organisé en plusieurs fichiers pour une meilleure gestion et modularité :
+
+### data.tf : 
+Ce fichier regroupe les définitions des données requises, telles que le réseau virtuel et le sous-réseau existants. Il utilise le module azurerm_virtual_network pour récupérer les informations sur le réseau virtuel et le module azurerm_subnet pour obtenir les détails du sous-réseau.
+
+### main.tf : 
+Ce fichier est le point central de la configuration. Il définit le fournisseur Azure, spécifie les détails de l'emplacement (location) et crée l'interface réseau principale de la machine virtuelle. Il utilise le module azurerm_network_interface pour créer une interface réseau avec une configuration IP.
+
+### network.tf : 
+Ce fichier contient la configuration spécifique au réseau de la machine virtuelle. Il définit la création de la carte réseau de la machine virtuelle et alloue une adresse IP publique à cette carte réseau à l'aide du module azurerm_public_ip.
+
+### ssh.tf : 
+Ici, la génération de la clé SSH est gérée à l'aide du module tls_private_key. Ce fichier définit également des sorties pour récupérer la clé privée et la clé publique générées. Cela permet une utilisation pratique des clés SSH pour l'authentification SSH ultérieure.
+
+### variables.tf : 
+Toutes les variables nécessaires au déploiement sont déclarées dans ce fichier. Cela inclut des variables telles que le nom de la machine virtuelle, le nom d'utilisateur administrateur, l'emplacement, etc. Définir ces variables dans un fichier séparé facilite la personnalisation et la gestion des valeurs.
+
+### virtualmachine.tf : 
+Ce fichier contient la configuration spécifique de la machine virtuelle Linux. Il définit la machine virtuelle elle-même en utilisant le module azurerm_linux_virtual_machine. Il comprend des détails tels que la personnalisation de l'image, la configuration du disque OS, la définition du nom d'utilisateur administrateur, et la configuration SSH pour permettre l'accès sécurisé à la machine virtuelle.
+
+Cette structure modulaire rend le code Terraform plus lisible, plus facile à gérer et favorise la réutilisation des composants. Chaque fichier se concentre sur une tâche spécifique, ce qui simplifie le processus de développement, de maintenance et de débogage de l'infrastructure Azure déployée.
+
+
+## Bonus 
+
+1. Installation de Docker avec cloud-init
+
+Un script est lancé au démarrage de la machine virtuelle pour installer Docker à l'aide de cloud-init. 
+
+```
+  custom_data = base64encode(<<-EOF
+                #!/bin/bash
+                sudo apt-get update
+                sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+                curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+                sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+                sudo apt-get update
+                sudo apt-get install -y docker-ce
+                EOF
+  )
+
+  
+```
+
+Cette approche automatisée simplifie le processus de configuration de la machine virtuelle en installant Docker dès son démarrage. Cela permet d'accélérer le déploiement d'applications conteneurisées et de rendre l'environnement de développement plus flexible et réactif.
+
+2. Utilisation de variables et aucune duplication de code
+Pour assurer une meilleure gestion du code Terraform, les variables ont été largement utilisées, ce qui permet une personnalisation facile et une réutilisation efficace du code, avec le fichier variables.tf où est toutes les variables de ce projet sont stockées.
+
+variables.tf:
+
+```
+variable "vm_name" {
+  default = "devops-20220004"
+}
+
+variable "admin_username" {
+  default = "devops"
+}
+
+variable "ssh_public_key_path" {
+  default = "~/.ssh/id_rsa.pub"
+}
+
+variable "subnet_name" {
+  default = "internal"
+}
+
+variable "virtual_network_name" {
+  default = "network-tp4"
+}
+
+variable "subnet_address_prefix" {
+  default = "10.0.1.0/24"
+}
+
+variable "location" {
+  default = "francecentral"
+}
+
+variable "resource_group_name" {
+  default = "ADDA84-CTP"
+}
+
+variable "subscription_id" {
+  default = "765266c6-9a23-4638-af32-dd1e32613047"
+}
+```
+
+De plus, aucune duplication de code n'a été autorisée, conformément aux bonnes pratiques de développement, ce qui garantit la cohérence et la maintenabilité du code Terraform.
+
+3. Formatage correct du code Terraform
+Le code Terraform a été correctement formaté grâce à la commande suivante :
+
+```
+terraform fmt
+```
+
+qui est utilisé avant le terraform init pour garantir la lisibilité et la cohérence du code Terraform.
+
+## Conclusion
+
+Pour conclure, terraform est un outil précieux pour déployer des ressources sur le cloud. En utilisant Terraform, les équipes peuvent automatiser le déploiement de l'infrastructure, assurer sa cohérence et sa reproductibilité, et gérer facilement les configurations complexes. Cela permet d'accélérer les déploiements, de réduire les erreurs humaines et d'assurer une gestion efficace de l'état de l'infrastructure. En adoptant Terraform, les organisations peuvent bénéficier d'une meilleure agilité opérationnelle, d'une scalabilité accrue et d'une meilleure fiabilité de leurs environnements cloud.
+
+
+
